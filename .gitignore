@@ -1,0 +1,13 @@
+# Build folders & IDE files
+bin/
+obj/
+.vs/
+*.user
+
+# Local SQLite databases
+*.db
+*.db-journal
+
+# Environment variables & local configuration
+.env
+appsettings.Development.json

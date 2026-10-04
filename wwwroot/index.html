@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudVPS Catalog - Compare & Discover VPS Hosting</title>
+  
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Vue 3 via CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <style>
+    /* Dual Range Slider Styling */
+    .range-slider-wrapper {
+      position: relative;
+      height: 28px;
+    }
+    .range-slider-wrapper input[type="range"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      background: transparent;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .range-slider-wrapper input[type="range"]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #2563eb;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      cursor: pointer;
+      -webkit-appearance: none;
+      pointer-events: auto;
+      transition: transform 0.12s ease;
+    }
+    .range-slider-wrapper input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    .range-slider-wrapper input[type="range"]::-moz-range-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #2563eb;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .slider-rail {
+      position: absolute;
+      top: 8px;
+      left: 0;
+      right: 0;
+      height: 6px;
+      border-radius: 9999px;
+      background: #e2e8f0;
+    }
+    .slider-fill {
+      position: absolute;
+      top: 8px;
+      height: 6px;
+      border-radius: 9999px;
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body class="h-full text-slate-800 antialiased flex flex-col selection:bg-blue-500 selection:text-white">
+  <div id="app" class="min-h-full flex flex-col">
+
+    <!-- Toast Notification -->
+    <div v-if="toast.visible" 
+         class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl text-white transition-all transform duration-300 border border-white/10"
+         :class="toast.type === 'error' ? 'bg-rose-600' : 'bg-slate-900'">
+      <svg v-if="toast.type === 'success'" class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+      <svg v-else class="w-5 h-5 text-rose-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <span class="text-sm font-medium">{{ toast.message }}</span>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-30 shadow-xs">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16 gap-4">
+          
+          <!-- Logo & Brand -->
+          <div class="flex items-center gap-3 cursor-pointer group shrink-0" @click="resetFilters">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">CloudVPS Catalog</span>
+                <span class="hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">v1.2</span>
+              </div>
+              <p class="text-[11px] text-slate-400 hidden sm:block">Compare verified VPS hosting plans</p>
+            </div>
+          </div>
+
+          <!-- Global Search Input with Keyboard Shortcut hint -->
+          <div class="flex-1 max-w-md hidden md:block">
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+              <input ref="searchInputRef"
+                     type="text" 
+                     v-model="filters.q" 
+                     @input="debounceSearch"
+                     placeholder="Search provider, CPU, location... (Press '/' to focus)"
+                     class="w-full pl-10 pr-12 py-2 text-sm bg-slate-100/90 hover:bg-slate-50 focus:bg-white border border-transparent focus:border-blue-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all">
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1">
+                <button v-if="filters.q" @click="filters.q = ''; fetchPlans()" class="text-slate-400 hover:text-slate-600 p-0.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <kbd class="text-[10px] bg-slate-200 text-slate-500 font-mono px-1.5 py-0.5 rounded shadow-2xs select-none pointer-events-none">/</kbd>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Status Header Bar & Auth Actions -->
+          <div class="flex items-center gap-3">
+            
+            <!-- Logged-in State -->
+            <template v-if="currentUser">
+              <!-- Favorites Filter Quick Toggle -->
+              <button @click="toggleFavoritesFilter"
+                      :class="filters.favoritesOnly ? 'bg-rose-50 text-rose-600 border-rose-300' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border transition shadow-2xs"
+                      title="Show Favorited Servers Only">
+                <svg class="w-4 h-4" :class="filters.favoritesOnly ? 'fill-rose-500 text-rose-500' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+                <span class="hidden sm:inline">Favorites</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white border border-slate-200">{{ favoriteIds.size }}</span>
+              </button>
+
+              <!-- Add Server (Admin Only) -->
+              <button v-if="currentUser.role === 'Admin'"
+                      @click="openCreateModal" 
+                      class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>Add Server</span>
+              </button>
+
+              <!-- User Badge & Menu -->
+              <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+                <div class="flex flex-col text-right hidden sm:block">
+                  <span class="text-xs font-bold text-slate-800">{{ currentUser.username }}</span>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider inline-block text-center"
+                        :class="currentUser.role === 'Admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600 border border-slate-200'">
+                    {{ currentUser.role }}
+                  </span>
+                </div>
+                <button @click="logout" 
+                        class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" 
+                        title="Sign Out">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                  </svg>
+                </button>
+              </div>
+            </template>
+
+            <!-- Logged-out State -->
+            <template v-else>
+              <button @click="openAuthModal('login')" 
+                      class="px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition">
+                Sign In
+              </button>
+              <button @click="openAuthModal('register')" 
+                      class="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition">
+                Register
+              </button>
+            </template>
+
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile Search Bar -->
+    <div class="md:hidden bg-white border-b border-slate-200 p-3">
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <input type="text" 
+               v-model="filters.q" 
+               @input="debounceSearch"
+               placeholder="Search servers, providers, CPU..."
+               class="w-full pl-9 pr-8 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:bg-white focus:border-blue-500">
+      </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        
+        <!-- SIDEBAR FILTERS -->
+        <aside class="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-6">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h2 class="font-bold text-slate-900 flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+              </svg>
+              Filter Options
+            </h2>
+            <button v-if="hasActiveFilters" 
+                    @click="resetFilters" 
+                    class="text-xs font-semibold text-blue-600 hover:text-blue-800 transition">
+              Reset All
+            </button>
+          </div>
+
+          <!-- Price Range Slider -->
+          <div class="space-y-3">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <span>Price Range</span>
+              <span class="text-[10px] font-normal text-slate-400 capitalize">($/mo eqv)</span>
+            </div>
+
+            <!-- Price Inputs -->
+            <div class="flex items-center justify-between gap-2 text-xs">
+              <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
+                <span class="text-slate-400 mr-1">$</span>
+                <input type="number" 
+                       v-model.number="filters.minPrice" 
+                       :min="bounds.minPrice" 
+                       :max="filters.maxPrice - 1"
+                       @change="onManualPriceChange"
+                       class="w-12 bg-transparent font-semibold text-slate-800 focus:outline-none">
+              </div>
+              <span class="text-slate-400 text-xs">to</span>
+              <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
+                <span class="text-slate-400 mr-1">$</span>
+                <input type="number" 
+                       v-model.number="filters.maxPrice" 
+                       :min="filters.minPrice + 1" 
+                       :max="bounds.maxPrice"
+                       @change="onManualPriceChange"
+                       class="w-12 bg-transparent font-semibold text-slate-800 focus:outline-none">
+              </div>
+            </div>
+
+            <!-- Dual Range Sliders -->
+            <div class="range-slider-wrapper">
+              <div class="slider-rail"></div>
+              <div class="slider-fill" :style="sliderHighlightStyle"></div>
+              <input type="range" 
+                     :min="bounds.minPrice" 
+                     :max="bounds.maxPrice" 
+                     step="1"
+                     v-model.number="filters.minPrice" 
+                     @input="onSliderInput('min')">
+              <input type="range" 
+                     :min="bounds.minPrice" 
+                     :max="bounds.maxPrice" 
+                     step="1"
+                     v-model.number="filters.maxPrice" 
+                     @input="onSliderInput('max')">
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+              <span>${{ bounds.minPrice }}/mo</span>
+              <span>${{ bounds.maxPrice }}/mo+</span>
+            </div>
+          </div>
+
+          <!-- Billing Frequency Facet -->
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Billing Frequency</label>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button v-for="cycle in ['ALL', 'HOURLY', 'MONTHLY', 'ANNUALLY']"
+                      :key="cycle"
+                      @click="filters.billing = cycle; fetchPlans()"
+                      class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition text-center"
+                      :class="filters.billing === cycle ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-2xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'">
+                {{ cycle === 'ALL' ? 'Any Cycle' : cycle.charAt(0) + cycle.slice(1).toLowerCase() }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Provider Radio Buttons -->
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Cloud Providers</label>
+            <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+              <label class="flex items-center justify-between text-xs text-slate-700 hover:bg-slate-50 p-1.5 rounded-lg cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <input type="radio" 
+                         name="prov-radio"
+                         value="ALL"
+                         v-model="filters.provider"
+                         @change="fetchPlans()"
+                         class="rounded-full text-blue-600 focus:ring-blue-500">
+                  <span class="font-medium text-slate-600">All Providers</span>
+                </div>
+              </label>
+              <label v-for="prov in providers" :key="prov.id" 
+                     class="flex items-center justify-between text-xs text-slate-700 hover:bg-slate-50 p-1.5 rounded-lg cursor-pointer">
+                <div class="flex items-center gap-2">
+                  <input type="radio" 
+                         name="prov-radio"
+                         :value="prov.name"
+                         v-model="filters.provider"
+                         @change="fetchPlans()"
+                         class="rounded-full text-blue-600 focus:ring-blue-500">
+                  <span class="font-medium">{{ prov.name }}</span>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                  {{ prov.serverCount }}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Min Memory / RAM -->
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Min Memory (RAM)</label>
+            <div class="flex flex-wrap gap-1.5">
+              <button v-for="opt in ramFilterOptions" 
+                      :key="opt.value"
+                      @click="filters.minRam = opt.value; fetchPlans()"
+                      class="px-2.5 py-1 text-xs rounded-lg border transition font-semibold"
+                      :class="filters.minRam === opt.value ? 'bg-blue-600 border-blue-600 text-white shadow-2xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'">
+                {{ opt.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Min CPU Cores -->
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Min CPU Cores</label>
+            <div class="grid grid-cols-4 gap-1.5">
+              <button v-for="cpu in [0, 1, 2, 4]" 
+                      :key="cpu"
+                      @click="filters.minCpu = cpu; fetchPlans()"
+                      class="py-1 text-xs rounded-lg border transition text-center font-semibold"
+                      :class="filters.minCpu === cpu ? 'bg-blue-600 border-blue-600 text-white shadow-2xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'">
+                {{ cpu === 0 ? 'Any' : cpu + ' Core' + (cpu > 1 ? 's' : '') }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Storage Technology Dropdown -->
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Storage Type</label>
+            <select v-model="filters.storageType" 
+                    @change="fetchPlans()" 
+                    class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+              <option value="ALL">All Storage Types</option>
+              <option value="NVMe">NVMe SSD (Ultra Fast)</option>
+              <option value="SATA_SSD">Standard SATA SSD</option>
+              <option value="HDD">High-Capacity HDD</option>
+            </select>
+          </div>
+
+          <!-- Datacenter Region Dropdown -->
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Region / Datacenter</label>
+            <select v-model="filters.region" 
+                    @change="fetchPlans()" 
+                    class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+              <option value="ALL">All Regions (Global)</option>
+              <option v-for="loc in bounds.locations" :key="loc" :value="loc">
+                {{ formatCountryName(loc) }} ({{ loc }})
+              </option>
+            </select>
+          </div>
+        </aside>
+
+        <!-- RESULTS CATALOG -->
+        <main class="lg:col-span-3 space-y-4">
+          
+          <!-- Top Results Bar -->
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-base font-bold text-slate-900">{{ pagination.totalRecords }} Plans Available</span>
+                <span v-if="filters.favoritesOnly" class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                  Showing Favorites Only
+                </span>
+                <span v-if="loading" class="animate-spin text-blue-600">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                </span>
+              </div>
+              <p class="text-xs text-slate-500">Live prices from verified cloud infrastructure vendors</p>
+            </div>
+
+            <!-- Sorting Dropdown & View Mode -->
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-medium text-slate-500">Sort by:</span>
+                <select v-model="filters.sort" 
+                        @change="fetchPlans()"
+                        class="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-blue-500">
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="ram_desc">Memory: Largest First</option>
+                  <option value="cpu_desc">vCPU: Most Cores First</option>
+                  <option value="newest">Recently Added</option>
+                </select>
+              </div>
+
+              <!-- Grid vs Table View Mode -->
+              <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                <button @click="viewMode = 'grid'" 
+                        :class="viewMode === 'grid' ? 'bg-white shadow-2xs text-blue-600' : 'text-slate-500 hover:text-slate-800'"
+                        class="p-1.5 rounded-md transition" title="Grid View">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                  </svg>
+                </button>
+                <button @click="viewMode = 'table'" 
+                        :class="viewMode === 'table' ? 'bg-white shadow-2xs text-blue-600' : 'text-slate-500 hover:text-slate-800'"
+                        class="p-1.5 rounded-md transition" title="Table View">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Filter Pills Bar -->
+          <div v-if="activeFilterPills.length > 0" class="flex flex-wrap items-center gap-2">
+            <span class="text-xs text-slate-500 font-medium">Active filters:</span>
+            <div v-for="pill in activeFilterPills" :key="pill.key" 
+                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+              <span>{{ pill.label }}</span>
+              <button @click="removeFilter(pill.key)" class="hover:text-blue-900 focus:outline-none">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <button @click="resetFilters" class="text-xs text-slate-500 hover:text-slate-800 underline font-medium ml-1">Clear all</button>
+          </div>
+
+          <!-- Empty State -->
+          <div v-if="servers.length === 0 && !loading" class="bg-white rounded-2xl border border-slate-200/90 p-12 text-center space-y-4">
+            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base font-bold text-slate-800">No VPS plans found</h3>
+              <p class="text-sm text-slate-500 max-w-sm mx-auto">No plans matched your criteria. Try widening your price range or clearing facet filters.</p>
+            </div>
+            <button @click="resetFilters" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition">
+              Reset All Filters
+            </button>
+          </div>
+
+          <!-- VIEW MODE 1: GRID CARDS -->
+          <div v-if="viewMode === 'grid' && servers.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div v-for="srv in servers" :key="srv.id" 
+                 class="bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 hover:shadow-lg transition-all duration-200 flex flex-col overflow-hidden group relative">
+              
+              <!-- Card Header -->
+              <div class="p-5 pb-3 border-b border-slate-100">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                  <div class="flex items-center gap-2">
+                    <img :src="srv.provider?.logoUrl" :alt="srv.provider?.name" class="w-5 h-5 object-contain">
+                    <span class="text-xs font-bold text-slate-600">{{ srv.provider?.name }}</span>
+                  </div>
+                  
+                  <div class="flex items-center gap-1.5">
+                    <!-- Bookmark Heart Icon -->
+                    <button @click="toggleFavorite(srv)" 
+                            class="p-1 text-slate-400 hover:text-rose-500 transition rounded-full hover:bg-rose-50"
+                            :title="srv.isFavorite ? 'Remove from favorites' : 'Add to favorites'">
+                      <svg class="w-4 h-4 transition" 
+                           :class="srv.isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-400'" 
+                           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                      </svg>
+                    </button>
+
+                    <!-- Stock Status Badge -->
+                    <span class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full"
+                          :class="{
+                            'bg-emerald-50 text-emerald-700 border border-emerald-200': srv.stockStatus === 'IN_STOCK',
+                            'bg-amber-50 text-amber-700 border border-amber-200': srv.stockStatus === 'LOW_STOCK',
+                            'bg-rose-50 text-rose-700 border border-rose-200': srv.stockStatus === 'OUT_OF_STOCK'
+                          }">
+                      {{ srv.stockStatus.replace('_', ' ') }}
+                    </span>
+                  </div>
+                </div>
+
+                <h3 class="text-base font-bold text-slate-900 group-hover:text-blue-600 transition truncate cursor-pointer"
+                    @click="openDetailsModal(srv)">
+                  {{ srv.planName }}
+                </h3>
+
+                <!-- Billing Badges -->
+                <div class="flex flex-wrap items-center gap-1.5 mt-2.5">
+                  <span v-for="tier in srv.pricing" :key="tier.id"
+                        class="text-[10px] font-bold px-2 py-0.5 rounded-md border"
+                        :class="getCycleBadgeClass(tier.billingCycle)">
+                    {{ tier.billingCycle === 'HOURLY' ? `$${tier.amount}/hr` : (tier.billingCycle === 'MONTHLY' ? `$${tier.amount}/mo` : tier.billingCycle) }}
+                  </span>
+
+                  <span v-if="srv.pricing.some(p => p.setupFee === 0)" 
+                        class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                    Free Setup
+                  </span>
+
+                  <span v-if="srv.pricing.some(p => p.discountPercent)" 
+                        class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300">
+                    Save {{ srv.pricing.find(p => p.discountPercent).discountPercent }}%
+                  </span>
+                </div>
+              </div>
+
+              <!-- Card Middle: Hardware Specs Matrix -->
+              <div class="p-5 py-4 space-y-3 flex-1 bg-slate-50/50">
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div class="flex items-center gap-2 text-slate-600">
+                    <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                    <span><strong>{{ srv.specs.vcpu }}</strong> vCPU <span class="text-[11px] text-slate-400">({{ srv.specs.cpuType.split(' ')[0] }})</span></span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600">
+                    <svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    <span><strong>{{ formatRam(srv.specs.ramMb) }}</strong> RAM</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600">
+                    <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7C5 4 4 5 4 7zM9 9h6"/></svg>
+                    <span><strong>{{ srv.specs.storageGb }}GB</strong> {{ srv.specs.storageType }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600">
+                    <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span><strong>{{ srv.specs.bandwidthTb }}TB</strong> Traffic</span>
+                  </div>
+                </div>
+
+                <!-- Locations & Networking -->
+                <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500">
+                  <div class="flex items-center gap-1 truncate max-w-[170px]" :title="srv.locations.join(', ')">
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                    <span class="truncate">{{ srv.locations.join(', ') }}</span>
+                  </div>
+                  <div class="flex items-center gap-1 font-mono text-[10px]">
+                    <span v-if="srv.specs.hasIpv4" class="px-1.5 py-0.5 rounded bg-slate-200/60 text-slate-700 font-bold">IPv4</span>
+                    <span v-if="srv.specs.hasIpv6" class="px-1.5 py-0.5 rounded bg-slate-200/60 text-slate-700 font-bold">IPv6</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Bottom: Pricing & Actions -->
+              <div class="p-5 pt-4 bg-white border-t border-slate-100 flex items-center justify-between gap-3">
+                <div>
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-xl font-black text-slate-900">${{ srv.normalizedMonthlyPrice.toFixed(2) }}</span>
+                    <span class="text-xs font-semibold text-slate-500">/ mo</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400">normalized rate</span>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                  <!-- Details Button -->
+                  <button @click="openDetailsModal(srv)" 
+                          class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition" 
+                          title="View Specs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                  </button>
+
+                  <!-- Edit CRUD Button (Admin Only) -->
+                  <button v-if="currentUser && currentUser.role === 'Admin'"
+                          @click="openEditModal(srv)" 
+                          class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition" 
+                          title="Edit Plan">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                  </button>
+
+                  <!-- Outbound Direct Link -->
+                  <button @click="deployServer(srv)"
+                          class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                    <span>Deploy</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW MODE 2: TABLE VIEW -->
+          <div v-if="viewMode === 'table' && servers.length > 0" class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                    <th class="p-3.5 pl-5">Plan & Provider</th>
+                    <th class="p-3.5">vCPU</th>
+                    <th class="p-3.5">Memory</th>
+                    <th class="p-3.5">Storage</th>
+                    <th class="p-3.5">Locations</th>
+                    <th class="p-3.5">Cadence</th>
+                    <th class="p-3.5">Price / Mo</th>
+                    <th class="p-3.5 pr-5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs">
+                  <tr v-for="srv in servers" :key="srv.id" class="hover:bg-slate-50/70 transition">
+                    <td class="p-3.5 pl-5">
+                      <div class="flex items-center gap-2.5">
+                        <button @click="toggleFavorite(srv)" class="text-slate-400 hover:text-rose-500 transition">
+                          <svg class="w-4 h-4" :class="srv.isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                          </svg>
+                        </button>
+                        <img :src="srv.provider?.logoUrl" class="w-4 h-4 object-contain">
+                        <div>
+                          <div class="font-bold text-slate-800 hover:text-blue-600 cursor-pointer" @click="openDetailsModal(srv)">{{ srv.planName }}</div>
+                          <div class="text-[10px] text-slate-400">{{ srv.provider?.name }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="p-3.5 font-semibold text-slate-700">{{ srv.specs.vcpu }} Cores</td>
+                    <td class="p-3.5 font-semibold text-slate-700">{{ formatRam(srv.specs.ramMb) }}</td>
+                    <td class="p-3.5 font-semibold text-slate-700">{{ srv.specs.storageGb }}GB {{ srv.specs.storageType }}</td>
+                    <td class="p-3.5 text-slate-500">{{ srv.locations.join(', ') }}</td>
+                    <td class="p-3.5">
+                      <div class="flex flex-wrap gap-1">
+                        <span v-for="t in srv.pricing" :key="t.id"
+                              class="text-[9px] font-bold px-1.5 py-0.5 rounded border"
+                              :class="getCycleBadgeClass(t.billingCycle)">
+                          {{ t.billingCycle }}
+                        </span>
+                      </div>
+                    </td>
+                    <td class="p-3.5 font-black text-slate-900 text-sm">
+                      ${{ srv.normalizedMonthlyPrice.toFixed(2) }}
+                    </td>
+                    <td class="p-3.5 pr-5 text-right">
+                      <div class="inline-flex items-center gap-1.5">
+                        <button @click="openDetailsModal(srv)" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition" title="Details">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </button>
+                        <button v-if="currentUser && currentUser.role === 'Admin'" 
+                                @click="openEditModal(srv)" class="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg transition" title="Edit">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </button>
+                        <button @click="deployServer(srv)" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition inline-flex items-center gap-1 shadow-2xs">
+                          <span>Deploy</span>
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div v-if="pagination.totalPages > 1" class="flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-slate-200/90 shadow-2xs">
+            <span class="text-xs text-slate-500 font-medium">
+              Page <strong>{{ pagination.currentPage }}</strong> of <strong>{{ pagination.totalPages }}</strong>
+            </span>
+            <div class="flex items-center gap-2">
+              <button :disabled="pagination.currentPage <= 1"
+                      @click="changePage(pagination.currentPage - 1)"
+                      class="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition">
+                Previous
+              </button>
+              <button :disabled="pagination.currentPage >= pagination.totalPages"
+                      @click="changePage(pagination.currentPage + 1)"
+                      class="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 transition">
+                Next
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- AUTH MODAL (Login & Register) -->
+    <div v-if="authModal.isOpen" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-sm w-full overflow-hidden transition-all transform animate-in fade-in zoom-in-95">
+        <div class="p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">{{ authModal.mode === 'login' ? 'Account Sign In' : 'Create New Account' }}</h3>
+              <p class="text-[11px] text-slate-500">Access favorites and administration</p>
+            </div>
+          </div>
+          <button @click="authModal.isOpen = false" class="text-slate-400 hover:text-slate-600 transition p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Mode Toggle Tabs -->
+        <div class="grid grid-cols-2 p-2 bg-slate-100 mx-6 mt-4 rounded-xl text-xs font-bold text-center">
+          <button @click="authModal.mode = 'login'; authModal.error = ''" 
+                  :class="authModal.mode === 'login' ? 'bg-white shadow-xs text-blue-600' : 'text-slate-500 hover:text-slate-800'"
+                  class="py-1.5 rounded-lg transition">
+            Sign In
+          </button>
+          <button @click="authModal.mode = 'register'; authModal.error = ''" 
+                  :class="authModal.mode === 'register' ? 'bg-white shadow-xs text-blue-600' : 'text-slate-500 hover:text-slate-800'"
+                  class="py-1.5 rounded-lg transition">
+            Register
+          </button>
+        </div>
+
+        <!-- Error alert -->
+        <div v-if="authModal.error" class="mx-6 mt-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2">
+          <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>{{ authModal.error }}</span>
+        </div>
+
+        <!-- Form -->
+        <form @submit.prevent="submitAuth" class="p-6 pt-3 space-y-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Username</label>
+            <input type="text" v-model="authForm.username" required placeholder="e.g. admin or user" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-blue-500 font-semibold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Password</label>
+            <input type="password" v-model="authForm.password" required placeholder="••••••••" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-blue-500 font-semibold">
+          </div>
+
+          <button type="submit" :disabled="authModal.loading" class="w-full py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition disabled:opacity-50 mt-2">
+            {{ authModal.loading ? 'Authenticating...' : (authModal.mode === 'login' ? 'Sign In to Account' : 'Register Account') }}
+          </button>
+
+          <!-- Pre-seeded accounts hint -->
+          <!-- <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-400 text-center space-y-0.5">
+            <div>Pre-seeded accounts:</div>
+            <div class="font-mono text-slate-500"><strong>admin</strong> / admin123 (Role: Admin)</div>
+            <div class="font-mono text-slate-500"><strong>user</strong> / user123 (Role: User)</div>
+          </div> -->
+        </form>
+      </div>
+    </div>
+
+    <!-- SERVER SPECIFICATIONS SHEET MODAL (View Details) -->
+    <div v-if="detailsModal.isOpen && detailsModal.server" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden transition-all transform animate-in fade-in zoom-in-95">
+        <div class="p-6 border-b border-slate-100 flex items-start justify-between bg-slate-50/70">
+          <div class="flex items-center gap-3">
+            <img :src="detailsModal.server.provider?.logoUrl" class="w-8 h-8 object-contain">
+            <div>
+              <div class="text-xs font-bold text-slate-500 uppercase">{{ detailsModal.server.provider?.name }}</div>
+              <h3 class="text-lg font-black text-slate-900">{{ detailsModal.server.planName }}</h3>
+            </div>
+          </div>
+          <button @click="detailsModal.isOpen = false" class="text-slate-400 hover:text-slate-600 transition p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-5 text-xs">
+          <!-- Full Specifications Grid -->
+          <div>
+            <h4 class="font-bold text-slate-700 uppercase tracking-wider mb-2.5">Hardware Specifications</h4>
+            <div class="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+              <div><span class="text-slate-400">Processor:</span> <strong class="text-slate-800 ml-1">{{ detailsModal.server.specs.vcpu }} Cores ({{ detailsModal.server.specs.cpuType }})</strong></div>
+              <div><span class="text-slate-400">RAM:</span> <strong class="text-slate-800 ml-1">{{ formatRam(detailsModal.server.specs.ramMb) }}</strong></div>
+              <div><span class="text-slate-400">Storage:</span> <strong class="text-slate-800 ml-1">{{ detailsModal.server.specs.storageGb }} GB {{ detailsModal.server.specs.storageType }}</strong></div>
+              <div><span class="text-slate-400">Bandwidth:</span> <strong class="text-slate-800 ml-1">{{ detailsModal.server.specs.bandwidthTb }} TB Traffic</strong></div>
+              <div><span class="text-slate-400">Port Speed:</span> <strong class="text-slate-800 ml-1">{{ detailsModal.server.specs.portSpeedMbps }} Mbps</strong></div>
+              <div><span class="text-slate-400">Virtualization:</span> <strong class="text-slate-800 ml-1">{{ detailsModal.server.specs.virtualization }}</strong></div>
+              <div><span class="text-slate-400">IPv4 Support:</span> <strong class="text-slate-800 ml-1">{{ detailsModal.server.specs.hasIpv4 ? 'Included' : 'None' }}</strong></div>
+              <div><span class="text-slate-400">IPv6 Support:</span> <strong class="text-slate-800 ml-1">{{ detailsModal.server.specs.hasIpv6 ? 'Included' : 'None' }}</strong></div>
+            </div>
+          </div>
+
+          <!-- Locations List -->
+          <div>
+            <h4 class="font-bold text-slate-700 uppercase tracking-wider mb-2">Available Datacenter Regions</h4>
+            <div class="flex flex-wrap gap-1.5">
+              <span v-for="c in detailsModal.server.locations" :key="c" class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 font-semibold text-slate-700">
+                {{ formatCountryName(c) }} ({{ c }})
+              </span>
+            </div>
+          </div>
+
+          <!-- Pricing Breakdown -->
+          <div>
+            <h4 class="font-bold text-slate-700 uppercase tracking-wider mb-2">Pricing Breakdown</h4>
+            <div class="space-y-1.5">
+              <div v-for="p in detailsModal.server.pricing" :key="p.id" class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold uppercase text-[10px] px-2 py-0.5 rounded border" :class="getCycleBadgeClass(p.billingCycle)">{{ p.billingCycle }}</span>
+                  <span v-if="p.isDefault" class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Default</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-sm font-black text-slate-900">${{ p.amount }} {{ p.currency }}</span>
+                  <span v-if="p.setupFee > 0" class="block text-[10px] text-slate-400">+ ${{ p.setupFee }} setup</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 pt-3 border-t border-slate-100 flex items-center justify-between">
+          <button v-if="currentUser && currentUser.role === 'Admin'" 
+                  @click="openEditModal(detailsModal.server); detailsModal.isOpen = false" 
+                  class="text-xs font-semibold text-blue-600 hover:text-blue-800">
+            Edit Listing
+          </button>
+          <div v-else></div>
+          <button @click="deployServer(detailsModal.server)" class="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition inline-flex items-center gap-1.5">
+            <span>Proceed to Vendor Site</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVER CRUD MODAL (Create & Edit) -->
+    <div v-if="modal.isOpen" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden transition-all transform animate-in fade-in zoom-in-95">
+        
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">{{ modal.isEdit ? 'Edit Server Plan' : 'Add New Server Plan' }}</h3>
+              <p class="text-xs text-slate-500">Configure specifications and pricing (Admin Only)</p>
+            </div>
+          </div>
+          <button @click="modal.isOpen = false" class="text-slate-400 hover:text-slate-600 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Modal Form -->
+        <form @submit.prevent="saveServer" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          
+          <!-- Basic Info -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Provider *</label>
+              <select v-model="form.providerId" required class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-blue-500 font-semibold">
+                <option value="" disabled>Select Cloud Provider</option>
+                <option v-for="prov in providers" :key="prov.id" :value="prov.id">{{ prov.name }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Plan Name *</label>
+              <input type="text" v-model="form.planName" required placeholder="e.g. CPX21 High-Frequency" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-blue-500 font-semibold">
+            </div>
+          </div>
+
+          <!-- Hardware Specs Grid -->
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Hardware Specifications</h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">vCPU Cores</label>
+                <input type="number" v-model.number="form.vcpuCount" min="1" required class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">CPU Type</label>
+                <input type="text" v-model="form.cpuType" placeholder="AMD EPYC" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">RAM (MB)</label>
+                <input type="number" v-model.number="form.ramMb" min="512" step="512" required class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Storage (GB)</label>
+                <input type="number" v-model.number="form.storageGb" min="10" required class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Storage Type</label>
+                <select v-model="form.storageType" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+                  <option value="NVMe">NVMe SSD</option>
+                  <option value="SATA_SSD">SATA SSD</option>
+                  <option value="HDD">HDD</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Bandwidth (TB)</label>
+                <input type="number" step="0.5" v-model.number="form.bandwidthTb" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Port Speed (Mbps)</label>
+                <input type="number" v-model.number="form.portSpeedMbps" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Virtualization</label>
+                <select v-model="form.virtualization" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-blue-500 font-medium">
+                  <option value="KVM">KVM</option>
+                  <option value="LXC">LXC</option>
+                  <option value="BARE_METAL">Bare Metal</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Locations & Outbound Vendor URL -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Datacenter Locations (CSV)</label>
+              <input type="text" v-model="form.locationsCsv" placeholder="e.g. US,DE,SG,FI" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-blue-500 font-medium">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Direct Vendor Order URL *</label>
+              <input type="url" v-model="form.directVendorUrl" required placeholder="https://provider.com/checkout..." class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:border-blue-500 font-medium">
+            </div>
+          </div>
+
+          <!-- Stock & IP Flags -->
+          <div class="flex flex-wrap items-center justify-between gap-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs">
+            <div class="flex items-center gap-4">
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox" v-model="form.hasIpv4" class="rounded text-blue-600">
+                <span class="font-semibold text-slate-700">IPv4 Included</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox" v-model="form.hasIpv6" class="rounded text-blue-600">
+                <span class="font-semibold text-slate-700">IPv6 Included</span>
+              </label>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-700">Stock Status:</span>
+              <select v-model="form.stockStatus" class="bg-white border border-slate-200 rounded-lg p-1.5 text-xs font-semibold">
+                <option value="IN_STOCK">In Stock</option>
+                <option value="LOW_STOCK">Low Stock</option>
+                <option value="OUT_OF_STOCK">Out of Stock</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Pricing Matrix -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Pricing Matrix</label>
+              <button type="button" @click="addPricingTier" class="text-xs font-bold text-blue-600 hover:text-blue-800">
+                + Add Tier
+              </button>
+            </div>
+            <div class="space-y-2">
+              <div v-for="(tier, idx) in form.pricing" :key="idx" class="flex items-center gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                <select v-model="tier.billingCycle" class="bg-white border border-slate-200 rounded-lg p-1.5 font-bold">
+                  <option value="HOURLY">HOURLY</option>
+                  <option value="MONTHLY">MONTHLY</option>
+                  <option value="QUARTERLY">QUARTERLY</option>
+                  <option value="ANNUALLY">ANNUALLY</option>
+                </select>
+                <div class="flex items-center bg-white border border-slate-200 rounded-lg px-2">
+                  <span class="text-slate-400 mr-1 font-bold">$</span>
+                  <input type="number" step="0.001" v-model.number="tier.amount" class="w-16 py-1 font-bold focus:outline-none" required>
+                </div>
+                <input type="number" step="0.1" v-model.number="tier.discountPercent" placeholder="Discount %" class="w-20 bg-white border border-slate-200 rounded-lg p-1.5 font-medium">
+                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 cursor-pointer">
+                  <input type="radio" name="default-tier" :checked="tier.isDefault" @change="setDefaultTier(idx)"> Default
+                </label>
+                <button type="button" v-if="form.pricing.length > 1" @click="form.pricing.splice(idx, 1)" class="p-1 text-slate-400 hover:text-rose-600 transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Action Buttons -->
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <button v-if="modal.isEdit" type="button" @click="confirmDelete(form.id)" class="px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition">
+              Delete Listing
+            </button>
+            <div v-else></div>
+
+            <div class="flex items-center gap-2">
+              <button type="button" @click="modal.isOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                Cancel
+              </button>
+              <button type="submit" :disabled="saving" class="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition disabled:opacity-50">
+                {{ saving ? 'Saving...' : (modal.isEdit ? 'Save Changes' : 'Create Plan') }}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION DIALOG -->
+    <div v-if="deleteDialog.isOpen" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-200 max-w-sm w-full p-6 text-center space-y-4">
+        <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-base font-bold text-slate-900">Remove Server Plan?</h3>
+          <p class="text-xs text-slate-500">This action will soft-delete the listing from the public catalog. (Admin privilege required)</p>
+        </div>
+        <div class="flex items-center justify-center gap-2 pt-2">
+          <button @click="deleteDialog.isOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+            Cancel
+          </button>
+          <button @click="executeDelete" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition">
+            Confirm Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto py-6">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+        <span>© 2026 CloudVPS Catalog. Verified hardware specs and real-time cloud pricing.</span>
+        <div class="flex items-center gap-4">
+          <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> REST API Active</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Vue 3 Application Script -->
+  <script>
+    const { createApp, ref, reactive, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const searchInputRef = ref(null);
+        const servers = ref([]);
+        const providers = ref([]);
+        const loading = ref(false);
+        const saving = ref(false);
+        const viewMode = ref('grid');
+
+        // Authentication State
+        const authToken = ref(localStorage.getItem('vps_token') || null);
+        const currentUser = ref(null);
+        const favoriteIds = ref(new Set());
+
+        try {
+          const storedUser = localStorage.getItem('vps_user');
+          if (storedUser) currentUser.value = JSON.parse(storedUser);
+        } catch (e) {
+          currentUser.value = null;
+        }
+
+        const authModal = reactive({
+          isOpen: false,
+          mode: 'login',
+          loading: false,
+          error: ''
+        });
+
+        const authForm = reactive({
+          username: '',
+          password: ''
+        });
+
+        const openAuthModal = (mode = 'login') => {
+          authModal.mode = mode;
+          authModal.error = '';
+          authForm.username = '';
+          authForm.password = '';
+          authModal.isOpen = true;
+        };
+
+        const submitAuth = async () => {
+          authModal.loading = true;
+          authModal.error = '';
+          try {
+            const url = authModal.mode === 'login' ? '/api/auth/login' : '/api/auth/register';
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: authForm.username,
+                password: authForm.password
+              })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              authToken.value = data.token;
+              currentUser.value = { id: data.id, username: data.username, role: data.role };
+              localStorage.setItem('vps_token', data.token);
+              localStorage.setItem('vps_user', JSON.stringify(currentUser.value));
+              authModal.isOpen = false;
+              showToast(`Signed in as ${data.username} (${data.role})`, 'success');
+              await loadUserFavorites();
+              await fetchPlans();
+            } else {
+              const err = await res.json().catch(() => ({}));
+              authModal.error = err.error || (authModal.mode === 'login' ? 'Invalid username or password' : 'Registration failed');
+            }
+          } catch (e) {
+            authModal.error = 'Network connection error';
+          } finally {
+            authModal.loading = false;
+          }
+        };
+
+        const logout = () => {
+          authToken.value = null;
+          currentUser.value = null;
+          favoriteIds.value.clear();
+          filters.favoritesOnly = false;
+          localStorage.removeItem('vps_token');
+          localStorage.removeItem('vps_user');
+          showToast('Signed out successfully', 'success');
+          fetchPlans();
+        };
+
+        // User Favorites System
+        const loadUserFavorites = async () => {
+          if (!authToken.value) {
+            favoriteIds.value.clear();
+            return;
+          }
+          try {
+            const res = await fetch('/api/user/favorites', {
+              headers: { 'Authorization': `Bearer ${authToken.value}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              favoriteIds.value = new Set(data.favoriteIds || []);
+            }
+          } catch (e) {
+            console.error('Failed to load favorites', e);
+          }
+        };
+
+        const toggleFavorite = async (srv) => {
+          if (!currentUser.value || !authToken.value) {
+            openAuthModal('login');
+            showToast('Please sign in to save favorite servers', 'error');
+            return;
+          }
+
+          try {
+            const res = await fetch(`/api/user/favorites/${srv.id}`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${authToken.value}`
+              }
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              srv.isFavorite = data.isFavorite;
+              if (data.isFavorite) {
+                favoriteIds.value.add(srv.id);
+                showToast(`Saved "${srv.planName}" to favorites`, 'success');
+              } else {
+                favoriteIds.value.delete(srv.id);
+                showToast(`Removed "${srv.planName}" from favorites`, 'success');
+                if (filters.favoritesOnly) {
+                  fetchPlans();
+                }
+              }
+            } else if (res.status === 401) {
+              logout();
+              openAuthModal('login');
+            }
+          } catch (e) {
+            showToast('Failed to update favorite', 'error');
+          }
+        };
+
+        const toggleFavoritesFilter = () => {
+          filters.favoritesOnly = !filters.favoritesOnly;
+          pagination.currentPage = 1;
+          fetchPlans();
+        };
+
+        // Bounds and Filters
+        const bounds = reactive({
+          minPrice: 0,
+          maxPrice: 150,
+          locations: []
+        });
+
+        // Exact filter keys requested: sort, minRam, minCpu, storageType, provider, region, billing
+        const filters = reactive({
+          q: '',
+          minPrice: 0,
+          maxPrice: 150,
+          sort: 'price_asc',
+          minRam: 0,
+          minCpu: 0,
+          storageType: 'ALL',
+          provider: 'ALL',
+          region: 'ALL',
+          billing: 'ALL',
+          favoritesOnly: false
+        });
+
+        const pagination = reactive({
+          currentPage: 1,
+          totalPages: 1,
+          totalRecords: 0,
+          limit: 12
+        });
+
+        const modal = reactive({
+          isOpen: false,
+          isEdit: false
+        });
+
+        const detailsModal = reactive({
+          isOpen: false,
+          server: null
+        });
+
+        const deleteDialog = reactive({
+          isOpen: false,
+          targetId: null
+        });
+
+        const toast = reactive({
+          visible: false,
+          message: '',
+          type: 'success',
+          timeout: null
+        });
+
+        const showToast = (message, type = 'success') => {
+          if (toast.timeout) clearTimeout(toast.timeout);
+          toast.message = message;
+          toast.type = type;
+          toast.visible = true;
+          toast.timeout = setTimeout(() => { toast.visible = false; }, 3500);
+        };
+
+        const form = reactive({
+          id: null,
+          providerId: '',
+          planName: '',
+          vcpuCount: 1,
+          cpuType: 'AMD EPYC',
+          ramMb: 2048,
+          storageGb: 40,
+          storageType: 'NVMe',
+          bandwidthTb: 20.0,
+          portSpeedMbps: 1000,
+          virtualization: 'KVM',
+          hasIpv4: true,
+          hasIpv6: true,
+          locationsCsv: 'US,DE',
+          directVendorUrl: 'https://',
+          stockStatus: 'IN_STOCK',
+          pricing: [
+            { billingCycle: 'MONTHLY', amount: 5.00, setupFee: 0, discountPercent: null, isDefault: true }
+          ]
+        });
+
+        const ramFilterOptions = [
+          { label: 'Any RAM', value: 0 },
+          { label: '1 GB+', value: 1024 },
+          { label: '2 GB+', value: 2048 },
+          { label: '4 GB+', value: 4096 },
+          { label: '8 GB+', value: 8192 },
+          { label: '16 GB+', value: 16384 },
+          { label: '32 GB+', value: 32768 }
+        ];
+
+        // Fetch Metadata & Filter Bounds
+        const fetchMeta = async () => {
+          try {
+            const [boundsRes, provRes] = await Promise.all([
+              fetch('/api/meta/filter-bounds'),
+              fetch('/api/providers')
+            ]);
+            if (boundsRes.ok) {
+              const data = await boundsRes.json();
+              bounds.minPrice = Math.floor(data.minPrice || 0);
+              bounds.maxPrice = Math.ceil(data.maxPrice || 150);
+              bounds.locations = data.locations || [];
+              if (filters.maxPrice > bounds.maxPrice) filters.maxPrice = bounds.maxPrice;
+            }
+            if (provRes.ok) {
+              providers.value = await provRes.json();
+            }
+          } catch (err) {
+            console.error('Failed to load filter metadata:', err);
+          }
+        };
+
+        // Query Server Plans (passes all active filter parameters to /api/vps)
+        const fetchPlans = async () => {
+          loading.value = true;
+          try {
+            const params = new URLSearchParams();
+            
+            // Required active filter parameters
+            if (filters.sort) params.set('sort', filters.sort);
+            if (filters.minRam > 0) params.set('minRam', filters.minRam);
+            if (filters.minCpu > 0) params.set('minCpu', filters.minCpu);
+            if (filters.storageType && filters.storageType !== 'ALL') params.set('storageType', filters.storageType);
+            if (filters.provider && filters.provider !== 'ALL') params.set('provider', filters.provider);
+            if (filters.region && filters.region !== 'ALL') params.set('region', filters.region);
+            if (filters.billing && filters.billing !== 'ALL') params.set('billing', filters.billing);
+            
+            // Price range & full text
+            if (filters.minPrice > bounds.minPrice) params.set('minPrice', filters.minPrice);
+            if (filters.maxPrice < bounds.maxPrice) params.set('maxPrice', filters.maxPrice);
+            if (filters.q) params.set('q', filters.q);
+            if (filters.favoritesOnly) params.set('favoritesOnly', 'true');
+            
+            params.set('page', pagination.currentPage);
+            params.set('limit', pagination.limit);
+
+            const urlQuery = params.toString();
+            window.history.replaceState(null, '', urlQuery ? `?${urlQuery}` : window.location.pathname);
+
+            const headers = {};
+            if (authToken.value) {
+              headers['Authorization'] = `Bearer ${authToken.value}`;
+            }
+
+            const res = await fetch(`/api/vps?${urlQuery}`, { headers });
+            if (res.ok) {
+              const data = await res.json();
+              servers.value = data.data.map(s => ({
+                ...s,
+                isFavorite: s.isFavorite || favoriteIds.value.has(s.id)
+              }));
+              pagination.currentPage = data.pagination.currentPage;
+              pagination.totalPages = data.pagination.totalPages;
+              pagination.totalRecords = data.pagination.totalRecords;
+            }
+          } catch (err) {
+            console.error('Failed to fetch plans:', err);
+            showToast('Unable to connect to server API', 'error');
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        // Alias for compatibility
+        const fetchServers = fetchPlans;
+
+        // Debounce Search
+        let searchTimer = null;
+        const debounceSearch = () => {
+          if (searchTimer) clearTimeout(searchTimer);
+          searchTimer = setTimeout(() => {
+            pagination.currentPage = 1;
+            fetchPlans();
+          }, 250);
+        };
+
+        // Slider Handle Controls
+        const onSliderInput = (handle) => {
+          if (handle === 'min' && filters.minPrice > filters.maxPrice - 1) {
+            filters.minPrice = filters.maxPrice - 1;
+          }
+          if (handle === 'max' && filters.maxPrice < filters.minPrice + 1) {
+            filters.maxPrice = filters.minPrice + 1;
+          }
+          debounceSearch();
+        };
+
+        const onManualPriceChange = () => {
+          if (filters.minPrice < bounds.minPrice) filters.minPrice = bounds.minPrice;
+          if (filters.maxPrice > bounds.maxPrice) filters.maxPrice = bounds.maxPrice;
+          if (filters.minPrice >= filters.maxPrice) filters.minPrice = filters.maxPrice - 1;
+          debounceSearch();
+        };
+
+        const sliderHighlightStyle = computed(() => {
+          const total = bounds.maxPrice - bounds.minPrice || 1;
+          const leftPercent = ((filters.minPrice - bounds.minPrice) / total) * 100;
+          const rightPercent = 100 - (((filters.maxPrice - bounds.minPrice) / total) * 100);
+          return {
+            left: `${Math.max(0, leftPercent)}%`,
+            right: `${Math.max(0, rightPercent)}%`
+          };
+        });
+
+        const hasActiveFilters = computed(() => {
+          return filters.q !== '' ||
+                 filters.minPrice > bounds.minPrice ||
+                 filters.maxPrice < bounds.maxPrice ||
+                 filters.billing !== 'ALL' ||
+                 filters.provider !== 'ALL' ||
+                 filters.minRam > 0 ||
+                 filters.minCpu > 0 ||
+                 filters.storageType !== 'ALL' ||
+                 filters.region !== 'ALL' ||
+                 filters.favoritesOnly;
+        });
+
+        const activeFilterPills = computed(() => {
+          const pills = [];
+          if (filters.q) pills.push({ key: 'q', label: `Search: "${filters.q}"` });
+          if (filters.favoritesOnly) pills.push({ key: 'favoritesOnly', label: 'Favorites Only' });
+          if (filters.minPrice > bounds.minPrice || filters.maxPrice < bounds.maxPrice) {
+            pills.push({ key: 'price', label: `$${filters.minPrice} - $${filters.maxPrice}/mo` });
+          }
+          if (filters.billing !== 'ALL') {
+            pills.push({ key: 'billing', label: `Billing: ${filters.billing}` });
+          }
+          if (filters.provider !== 'ALL') {
+            pills.push({ key: 'provider', label: `Provider: ${filters.provider}` });
+          }
+          if (filters.minRam > 0) {
+            pills.push({ key: 'minRam', label: `RAM >= ${formatRam(filters.minRam)}` });
+          }
+          if (filters.minCpu > 0) {
+            pills.push({ key: 'minCpu', label: `CPU >= ${filters.minCpu} Cores` });
+          }
+          if (filters.storageType !== 'ALL') {
+            pills.push({ key: 'storageType', label: `Storage: ${filters.storageType}` });
+          }
+          if (filters.region !== 'ALL') {
+            pills.push({ key: 'region', label: `Region: ${filters.region}` });
+          }
+          return pills;
+        });
+
+        const removeFilter = (key) => {
+          if (key === 'q') filters.q = '';
+          if (key === 'favoritesOnly') filters.favoritesOnly = false;
+          if (key === 'price') { filters.minPrice = bounds.minPrice; filters.maxPrice = bounds.maxPrice; }
+          if (key === 'billing') filters.billing = 'ALL';
+          if (key === 'provider') filters.provider = 'ALL';
+          if (key === 'minRam') filters.minRam = 0;
+          if (key === 'minCpu') filters.minCpu = 0;
+          if (key === 'storageType') filters.storageType = 'ALL';
+          if (key === 'region') filters.region = 'ALL';
+          pagination.currentPage = 1;
+          fetchPlans();
+        };
+
+        const resetFilters = () => {
+          filters.q = '';
+          filters.minPrice = bounds.minPrice;
+          filters.maxPrice = bounds.maxPrice;
+          filters.billing = 'ALL';
+          filters.provider = 'ALL';
+          filters.minRam = 0;
+          filters.minCpu = 0;
+          filters.storageType = 'ALL';
+          filters.region = 'ALL';
+          filters.sort = 'price_asc';
+          filters.favoritesOnly = false;
+          pagination.currentPage = 1;
+          fetchPlans();
+        };
+
+        const changePage = (p) => {
+          pagination.currentPage = p;
+          fetchPlans();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        const deployServer = async (srv) => {
+          try {
+            const res = await fetch(`/api/vps/${srv.id}/outbound`, { method: 'POST' });
+            if (res.ok) {
+              const data = await res.json();
+              window.open(data.url, '_blank', 'noopener,noreferrer');
+            } else {
+              window.open(srv.directVendorUrl, '_blank', 'noopener,noreferrer');
+            }
+          } catch (err) {
+            window.open(srv.directVendorUrl, '_blank', 'noopener,noreferrer');
+          }
+        };
+
+        const formatRam = (mb) => {
+          if (!mb) return '0 GB';
+          return mb >= 1024 ? `${(mb / 1024).toFixed(mb % 1024 === 0 ? 0 : 1)} GB` : `${mb} MB`;
+        };
+
+        const formatCountryName = (code) => {
+          const map = {
+            'US': 'United States',
+            'DE': 'Germany',
+            'FI': 'Finland',
+            'SG': 'Singapore',
+            'FR': 'France',
+            'CA': 'Canada',
+            'UK': 'United Kingdom',
+            'JP': 'Japan',
+            'AU': 'Australia',
+            'NL': 'Netherlands'
+          };
+          return map[code] || code;
+        };
+
+        const getCycleBadgeClass = (cycle) => {
+          switch (cycle?.toUpperCase()) {
+            case 'HOURLY': return 'bg-sky-50 text-sky-700 border-sky-200';
+            case 'MONTHLY': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            case 'QUARTERLY': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+            case 'ANNUALLY': return 'bg-purple-50 text-purple-700 border-purple-200';
+            default: return 'bg-slate-50 text-slate-700 border-slate-200';
+          }
+        };
+
+        const openDetailsModal = (srv) => {
+          detailsModal.server = srv;
+          detailsModal.isOpen = true;
+        };
+
+        // CRUD Modal Functions (Admin Only)
+        const openCreateModal = () => {
+          if (!currentUser.value || currentUser.value.role !== 'Admin') {
+            showToast('Admin privilege required to add servers', 'error');
+            return;
+          }
+          modal.isEdit = false;
+          form.id = null;
+          form.providerId = providers.value[0]?.id || '';
+          form.planName = '';
+          form.vcpuCount = 2;
+          form.cpuType = 'AMD EPYC';
+          form.ramMb = 4096;
+          form.storageGb = 80;
+          form.storageType = 'NVMe';
+          form.bandwidthTb = 20.0;
+          form.portSpeedMbps = 1000;
+          form.virtualization = 'KVM';
+          form.hasIpv4 = true;
+          form.hasIpv6 = true;
+          form.locationsCsv = 'DE,US';
+          form.directVendorUrl = 'https://';
+          form.stockStatus = 'IN_STOCK';
+          form.pricing = [
+            { billingCycle: 'MONTHLY', amount: 9.99, setupFee: 0, discountPercent: null, isDefault: true }
+          ];
+          modal.isOpen = true;
+        };
+
+        const openEditModal = (srv) => {
+          if (!currentUser.value || currentUser.value.role !== 'Admin') {
+            showToast('Admin privilege required to edit servers', 'error');
+            return;
+          }
+          modal.isEdit = true;
+          form.id = srv.id;
+          form.providerId = srv.provider?.id || '';
+          form.planName = srv.planName;
+          form.vcpuCount = srv.specs.vcpu;
+          form.cpuType = srv.specs.cpuType;
+          form.ramMb = srv.specs.ramMb;
+          form.storageGb = srv.specs.storageGb;
+          form.storageType = srv.specs.storageType;
+          form.bandwidthTb = srv.specs.bandwidthTb;
+          form.portSpeedMbps = srv.specs.portSpeedMbps;
+          form.virtualization = srv.specs.virtualization;
+          form.hasIpv4 = srv.specs.hasIpv4;
+          form.hasIpv6 = srv.specs.hasIpv6;
+          form.locationsCsv = srv.locations.join(',');
+          form.directVendorUrl = srv.directVendorUrl;
+          form.stockStatus = srv.stockStatus;
+          form.pricing = (srv.pricing || []).map(p => ({
+            billingCycle: p.billingCycle,
+            amount: p.amount,
+            setupFee: p.setupFee || 0,
+            discountPercent: p.discountPercent,
+            isDefault: p.isDefault
+          }));
+          if (form.pricing.length === 0) {
+            form.pricing.push({ billingCycle: 'MONTHLY', amount: 9.99, setupFee: 0, isDefault: true });
+          }
+          modal.isOpen = true;
+        };
+
+        const addPricingTier = () => {
+          form.pricing.push({
+            billingCycle: 'MONTHLY',
+            amount: 10.00,
+            setupFee: 0,
+            discountPercent: null,
+            isDefault: form.pricing.length === 0
+          });
+        };
+
+        const setDefaultTier = (idx) => {
+          form.pricing.forEach((p, i) => { p.isDefault = (i === idx); });
+        };
+
+        const saveServer = async () => {
+          saving.value = true;
+          try {
+            const payload = {
+              providerId: form.providerId,
+              planName: form.planName,
+              vcpuCount: form.vcpuCount,
+              cpuType: form.cpuType,
+              ramMb: form.ramMb,
+              storageGb: form.storageGb,
+              storageType: form.storageType,
+              bandwidthTb: form.bandwidthTb,
+              portSpeedMbps: form.portSpeedMbps,
+              virtualization: form.virtualization,
+              hasIpv4: form.hasIpv4,
+              hasIpv6: form.hasIpv6,
+              locationsCsv: form.locationsCsv,
+              directVendorUrl: form.directVendorUrl,
+              stockStatus: form.stockStatus,
+              isActive: true,
+              pricing: form.pricing
+            };
+
+            const url = modal.isEdit ? `/api/vps/${form.id}` : '/api/vps';
+            const method = modal.isEdit ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+              method,
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken.value}`
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+              showToast(modal.isEdit ? 'Plan updated successfully' : 'New plan added to catalog', 'success');
+              modal.isOpen = false;
+              await fetchMeta();
+              await fetchPlans();
+            } else if (res.status === 401 || res.status === 403) {
+              showToast('Admin privilege required for this action', 'error');
+            } else {
+              const err = await res.json().catch(() => ({}));
+              showToast(err.error || 'Failed to save server', 'error');
+            }
+          } catch (err) {
+            console.error('Error saving server:', err);
+            showToast('Network error while saving plan', 'error');
+          } finally {
+            saving.value = false;
+          }
+        };
+
+        const confirmDelete = (id) => {
+          if (!currentUser.value || currentUser.value.role !== 'Admin') {
+            showToast('Admin privilege required to delete servers', 'error');
+            return;
+          }
+          deleteDialog.targetId = id;
+          deleteDialog.isOpen = true;
+        };
+
+        const executeDelete = async () => {
+          try {
+            const res = await fetch(`/api/vps/${deleteDialog.targetId}`, { 
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${authToken.value}`
+              }
+            });
+            if (res.ok) {
+              showToast('Server plan removed from catalog', 'success');
+              deleteDialog.isOpen = false;
+              modal.isOpen = false;
+              if (detailsModal.isOpen) detailsModal.isOpen = false;
+              await fetchMeta();
+              await fetchPlans();
+            } else if (res.status === 401 || res.status === 403) {
+              showToast('Admin privilege required to delete servers', 'error');
+            } else {
+              showToast('Failed to delete server plan', 'error');
+            }
+          } catch (err) {
+            console.error('Delete error:', err);
+            showToast('Network error during deletion', 'error');
+          }
+        };
+
+        // Keyboard Shortcut: '/' to focus search
+        window.addEventListener('keydown', (e) => {
+          if (e.key === '/' && document.activeElement !== searchInputRef.value && !modal.isOpen && !authModal.isOpen) {
+            e.preventDefault();
+            searchInputRef.value?.focus();
+          }
+        });
+
+        onMounted(async () => {
+          // Initialize filters from URL query parameters if present
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('q')) filters.q = urlParams.get('q');
+          if (urlParams.get('minPrice')) filters.minPrice = parseFloat(urlParams.get('minPrice'));
+          if (urlParams.get('maxPrice')) filters.maxPrice = parseFloat(urlParams.get('maxPrice'));
+          if (urlParams.get('sort')) filters.sort = urlParams.get('sort');
+          if (urlParams.get('minRam')) filters.minRam = parseInt(urlParams.get('minRam'));
+          if (urlParams.get('minCpu')) filters.minCpu = parseInt(urlParams.get('minCpu'));
+          if (urlParams.get('storageType')) filters.storageType = urlParams.get('storageType');
+          if (urlParams.get('provider')) filters.provider = urlParams.get('provider');
+          if (urlParams.get('region')) filters.region = urlParams.get('region');
+          if (urlParams.get('billing')) filters.billing = urlParams.get('billing');
+          if (urlParams.get('favoritesOnly')) filters.favoritesOnly = urlParams.get('favoritesOnly') === 'true';
+
+          await fetchMeta();
+          await loadUserFavorites();
+          await fetchPlans();
+        });
+
+        return {
+          searchInputRef,
+          servers,
+          providers,
+          bounds,
+          filters,
+          pagination,
+          loading,
+          saving,
+          viewMode,
+          currentUser,
+          favoriteIds,
+          authModal,
+          authForm,
+          modal,
+          detailsModal,
+          deleteDialog,
+          toast,
+          form,
+          ramFilterOptions,
+          sliderHighlightStyle,
+          hasActiveFilters,
+          activeFilterPills,
+          openAuthModal,
+          submitAuth,
+          logout,
+          toggleFavorite,
+          toggleFavoritesFilter,
+          fetchPlans,
+          debounceSearch,
+          onSliderInput,
+          onManualPriceChange,
+          removeFilter,
+          resetFilters,
+          changePage,
+          deployServer,
+          formatRam,
+          formatCountryName,
+          getCycleBadgeClass,
+          openDetailsModal,
+          openCreateModal,
+          openEditModal,
+          addPricingTier,
+          setDefaultTier,
+          saveServer,
+          confirmDelete,
+          executeDelete
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
+
